@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PostService } from '../services/post.service';
+import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -50,6 +51,22 @@ import { CommonModule } from '@angular/common';
               <span class="meta-label">Published on</span>
               <span class="post-date">{{ formatDate(post().createdAt) }}</span>
             </div>
+          </div>
+
+          <!-- Owner Actions -->
+          <div class="post-actions" *ngIf="isOwner()">
+            <a [routerLink]="['/posts', post()._id, 'edit']" class="btn-action btn-edit">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="action-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+              </svg>
+              Edit Post
+            </a>
+            <button (click)="deletePost()" class="btn-action btn-delete">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="action-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+              </svg>
+              Delete Post
+            </button>
           </div>
 
           <!-- Tags -->
@@ -117,7 +134,7 @@ import { CommonModule } from '@angular/common';
       font-weight: 800;
       color: #f8fafc;
       line-height: 1.25;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       letter-spacing: -0.025em;
     }
 
@@ -185,6 +202,47 @@ import { CommonModule } from '@angular/common';
       color: #cbd5e1;
       font-size: 0.95rem;
       font-weight: 500;
+    }
+
+    /* Owner Actions */
+    .post-actions {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .action-icon {
+      width: 16px;
+      height: 16px;
+    }
+    .btn-edit {
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    .btn-edit:hover {
+      background: rgba(59, 130, 246, 0.2);
+      color: white;
+    }
+    .btn-delete {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .btn-delete:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: white;
     }
 
     /* Tags */
@@ -272,6 +330,8 @@ import { CommonModule } from '@angular/common';
 export class PostDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private postService = inject(PostService);
+  private router = inject(Router);
+  public authService = inject(AuthService);
 
   post = signal<any | null>(null);
   isLoading = signal(true);
@@ -301,6 +361,27 @@ export class PostDetailComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  isOwner(): boolean {
+    const currentUser = this.authService.currentUser();
+    const currentPost = this.post();
+    return !!(currentUser && currentPost && currentPost.author?._id === currentUser.id);
+  }
+
+  deletePost() {
+    const currentPost = this.post();
+    if (currentPost && confirm('Are you sure you want to delete this article?')) {
+      this.postService.deletePost(currentPost._id).subscribe({
+        next: () => {
+          this.router.navigate(['/']);
+        },
+        error: (err) => {
+          console.error('Delete error:', err);
+          alert(err.error?.error || 'Failed to delete the article.');
+        }
+      });
+    }
   }
 
   getInitials(name: string): string {
