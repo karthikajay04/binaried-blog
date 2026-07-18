@@ -20,8 +20,18 @@ import { RouterLink } from '@angular/router';
         <p>Loading posts...</p>
       </div>
 
+      <!-- Error State -->
+      <div *ngIf="!isLoading() && errorMessage()" class="state-container error-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="error-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+        </svg>
+        <h3>Connection error</h3>
+        <p>{{ errorMessage() }}</p>
+        <button (click)="loadPosts()" class="btn-retry">Retry Connection</button>
+      </div>
+
       <!-- Empty State -->
-      <div *ngIf="!isLoading() && posts().length === 0" class="state-container empty-state">
+      <div *ngIf="!isLoading() && !errorMessage() && posts().length === 0" class="state-container empty-state">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="empty-icon">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
         </svg>
@@ -31,7 +41,7 @@ import { RouterLink } from '@angular/router';
       </div>
 
       <!-- Posts Grid -->
-      <div *ngIf="!isLoading() && posts().length > 0" class="posts-grid">
+      <div *ngIf="!isLoading() && !errorMessage() && posts().length > 0" class="posts-grid">
         <article *ngFor="let post of posts()" class="post-card" [routerLink]="['/posts', post._id]">
           <div class="card-content">
             <!-- Title -->
@@ -193,7 +203,7 @@ import { RouterLink } from '@angular/router';
       font-weight: 500;
     }
 
-    /* States (Loading / Empty) */
+    /* States (Loading / Empty / Error) */
     .state-container {
       display: flex;
       flex-direction: column;
@@ -214,33 +224,42 @@ import { RouterLink } from '@angular/router';
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    .empty-state h3 {
+    .empty-state h3, .error-state h3 {
       font-size: 1.5rem;
       font-weight: 700;
       margin: 1.5rem 0 0.5rem;
       color: #cbd5e1;
     }
-    .empty-state p {
+    .error-state h3 {
+      color: #f87171;
+    }
+    .empty-state p, .error-state p {
       color: #64748b;
       margin-bottom: 2rem;
-      max-width: 320px;
+      max-width: 400px;
+      line-height: 1.5;
     }
-    .empty-icon {
+    .empty-icon, .error-icon {
       width: 64px;
       height: 64px;
       color: #475569;
     }
-    .btn-create-prompt {
+    .error-icon {
+      color: #f87171;
+    }
+    .btn-create-prompt, .btn-retry {
       background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
       color: white;
       text-decoration: none;
       padding: 0.75rem 1.75rem;
       border-radius: 8px;
       font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
       transition: all 0.2s ease;
     }
-    .btn-create-prompt:hover {
+    .btn-create-prompt:hover, .btn-retry:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
     }
@@ -251,8 +270,15 @@ export class PostListComponent implements OnInit {
 
   posts = signal<any[]>([]);
   isLoading = signal(true);
+  errorMessage = signal<string | null>(null);
 
   ngOnInit() {
+    this.loadPosts();
+  }
+
+  loadPosts() {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
     this.postService.getPosts().subscribe({
       next: (data) => {
         this.posts.set(data);
@@ -260,6 +286,7 @@ export class PostListComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load posts:', err);
+        this.errorMessage.set('Failed to retrieve blog articles. Please check your network connection or verify the server is running.');
         this.isLoading.set(false);
       }
     });

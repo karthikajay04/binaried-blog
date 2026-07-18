@@ -209,6 +209,15 @@ import { CommonModule } from '@angular/common';
       cursor: not-allowed;
       box-shadow: none;
     }
+    @media (max-width: 640px) {
+      .form-card {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+      }
+      h2 {
+        font-size: 1.75rem;
+      }
+    }
   `]
 })
 export class PostFormComponent implements OnInit {

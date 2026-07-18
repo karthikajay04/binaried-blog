@@ -176,6 +176,15 @@ import { CommonModule } from '@angular/common';
     .auth-footer a:hover {
       text-decoration: underline;
     }
+    @media (max-width: 480px) {
+      .auth-card {
+        padding: 2rem 1.5rem;
+        margin: 2rem 1rem;
+      }
+      h2 {
+        font-size: 1.75rem;
+      }
+    }
   `]
 })
 export class LoginComponent {
