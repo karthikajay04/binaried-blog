@@ -25,6 +25,8 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+app.use('/api/auth', require('./routes/auth'));
+
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
