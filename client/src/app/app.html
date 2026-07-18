@@ -10,9 +10,17 @@
 
       <div class="nav-links">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
-        <a routerLink="/login" routerLinkActive="active" class="nav-link">Login</a>
-        <a routerLink="/register" routerLinkActive="active" class="nav-link">Register</a>
-        <a routerLink="/new-post" routerLinkActive="active" class="nav-link nav-btn">New Post</a>
+        
+        <ng-container *ngIf="!authService.currentUser()">
+          <a routerLink="/login" routerLinkActive="active" class="nav-link">Login</a>
+          <a routerLink="/register" routerLinkActive="active" class="nav-link">Register</a>
+        </ng-container>
+
+        <ng-container *ngIf="authService.currentUser()">
+          <a routerLink="/new-post" routerLinkActive="active" class="nav-link nav-btn">New Post</a>
+          <span class="user-greeting">Hi, {{ authService.currentUser().name }}</span>
+          <button (click)="authService.logout()" class="btn-logout">Logout</button>
+        </ng-container>
       </div>
     </div>
   </nav>
