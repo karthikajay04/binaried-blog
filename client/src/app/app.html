@@ -1,0 +1,23 @@
+<div class="app-container">
+  <nav class="navbar">
+    <div class="nav-content">
+      <div class="logo-container" routerLink="/">
+        <span class="logo-accent">&lt;</span>
+        <span class="logo-text">Binaried</span>
+        <span class="logo-accent">/&gt;</span>
+        <span class="logo-sub">Blog</span>
+      </div>
+
+      <div class="nav-links">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
+        <a routerLink="/login" routerLinkActive="active" class="nav-link">Login</a>
+        <a routerLink="/register" routerLinkActive="active" class="nav-link">Register</a>
+        <a routerLink="/new-post" routerLinkActive="active" class="nav-link nav-btn">New Post</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
